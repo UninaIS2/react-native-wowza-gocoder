@@ -11,7 +11,7 @@
 
 
 NSString * const BlackAndWhiteKey = @"BlackAndWhiteKey";
-@interface WMBroadcastView()<WOWZStatusCallback, WOWZVideoSink, WOWZAudioSink, WOWZVideoEncoderSink, WOWZAudioEncoderSink>
+@interface WMBroadcastView()<WOWZBroadcastStatusCallback, WOWZVideoSink, WOWZAudioSink, WOWZVideoEncoderSink, WOWZAudioEncoderSink>
 
 
 @property (nonatomic, strong) WowzaGoCoder *goCoder;
@@ -94,7 +94,7 @@ NSString * const BlackAndWhiteKey = @"BlackAndWhiteKey";
 
 }
 -(void)stopBroadcasting{
-    if (self.goCoder.status.state == WOWZStateRunning) {
+    if (self.goCoder.status.state == WOWZBroadcastStateBroadcasting) {
         [self.goCoder endStreaming:self];
         [UIApplication sharedApplication].idleTimerDisabled = NO;
     }
@@ -141,14 +141,13 @@ NSString * const BlackAndWhiteKey = @"BlackAndWhiteKey";
     [self.goCoder unregisterVideoEncoderSink:self];
 }
 #pragma mark - WZStatusCallback Protocol Instance Methods
-- (void) onWOWZStatus:(WOWZStatus *) goCoderStatus {
+- (void) onWOWZStatus:(WOWZBroadcastStatus *) goCoderStatus {
     NSLog(@"status %@", goCoderStatus);
     // A successful status transition has been reported by the GoCoder SDK
     [self.delegate broadcastStatusDidChange:goCoderStatus.state];
-    
 }
 
-- (void) onWOWZEvent:(WOWZStatus *) goCoderStatus {
+- (void) onWOWZEvent:(WOWZBroadcastStatus *) goCoderStatus {
     // If an event is reported by the GoCoder SDK, display an alert dialog describing the event,
     // but only if we haven't already shown an alert for this event
     NSLog(@"event status %@", goCoderStatus);
@@ -172,7 +171,7 @@ NSString * const BlackAndWhiteKey = @"BlackAndWhiteKey";
     });
 }
 
-- (void) onWOWZError:(WOWZStatus *) goCoderStatus {
+- (void) onWOWZError:(WOWZBroadcastStatus *) goCoderStatus {
     // If an error is reported by the GoCoder SDK, display an alert dialog containing the error details
     
     [self.delegate broadcastDidReceiveError:goCoderStatus.error];

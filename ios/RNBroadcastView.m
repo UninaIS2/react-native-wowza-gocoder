@@ -161,28 +161,25 @@
     //show error
     self.onBroadcastFail(@{@"error":error.localizedDescription});
 }
--(void)broadcastStatusDidChange:(WOWZState)state{
+-(void)broadcastStatusDidChange:(WOWZBroadcastState)state{
     NSString *stateString;
     switch (state) {
-        case WOWZStateIdle:
+        case WOWZBroadcastStateIdle:
             stateString = @"idle";
             self.onBroadcastStop(@{@"event":@{@"host":self.hostAddress, @"broadcastName":self.broadcastName, @"status": @"stopped"}});
             break;
-        case WOWZStateRunning:
-            stateString = @"running";
+        case WOWZBroadcastStateBroadcasting:
+            stateString = @"broadcasting";
             break;
-        case WOWZStateStarting:
-            stateString = @"starting";
-            break;
-        case WOWZStateStopping:
-            stateString = @"stopping";
+        case WOWZBroadcastStateReady:
+            stateString = @"ready";
             break;
         default:
             break;
     }
-    
+
 }
--(void)broadcastDidReceiveEvent:(WOWZEvent)event andError:(NSError *)error{
+-(void)broadcastDidReceiveEvent:(WOWZBroadcastEvent)event andError:(NSError *)error{
     if(error){
         self.onBroadcastErrorReceive(@{@"error":error.localizedDescription});
     }

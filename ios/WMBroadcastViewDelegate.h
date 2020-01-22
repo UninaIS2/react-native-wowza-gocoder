@@ -12,8 +12,8 @@
 
 -(void)didStartBroacast;
 -(void)didFailToStartBroadcast:(NSError *)error;
--(void)broadcastStatusDidChange:(WOWZState)state;
--(void)broadcastDidReceiveEvent:(WOWZEvent)event andError:(NSError *)error;
+-(void)broadcastStatusDidChange:(WOWZBroadcastState)state;
+-(void)broadcastDidReceiveEvent:(WOWZBroadcastEvent)event andError:(NSError *)error;
 -(void)broadcastDidReceiveError:(NSError *) error;
 -(void)brodcastVideoFrameWasEncoded:(NSInteger *)durationInSeconds;
 @end
