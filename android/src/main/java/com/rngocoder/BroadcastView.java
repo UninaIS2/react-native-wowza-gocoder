@@ -8,16 +8,18 @@ import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
-import com.wowza.gocoder.sdk.api.broadcast.WZBroadcast;
-import com.wowza.gocoder.sdk.api.broadcast.WZBroadcastConfig;
-import com.wowza.gocoder.sdk.api.devices.WZAudioDevice;
-import com.wowza.gocoder.sdk.api.devices.WZCameraView;
-import com.wowza.gocoder.sdk.api.status.WZState;
-import com.wowza.gocoder.sdk.api.status.WZStatus;
-import com.wowza.gocoder.sdk.api.status.WZStatusCallback;
+import com.wowza.gocoder.sdk.api.broadcast.WOWZBroadcast;
+import com.wowza.gocoder.sdk.api.broadcast.WOWZBroadcastConfig;
+import com.wowza.gocoder.sdk.api.devices.WOWZAudioDevice;
+import com.wowza.gocoder.sdk.api.devices.WOWZCameraView;
+import com.wowza.gocoder.sdk.api.status.WOWZBroadcastStatus;
+import com.wowza.gocoder.sdk.support.status.WOWZState;
+import com.wowza.gocoder.sdk.support.status.WOWZStatus;
+import com.wowza.gocoder.sdk.support.status.WOWZStatusCallback;
+import com.wowza.gocoder.sdk.api.status.WOWZBroadcastStatusCallback;
 
-import android.support.v4.view.GestureDetectorCompat;
-import com.wowza.gocoder.sdk.api.devices.WZCamera;
+import androidx.core.view.GestureDetectorCompat;
+import com.wowza.gocoder.sdk.api.devices.WOWZCamera;
 
 
 /**
@@ -46,10 +48,10 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
         }
     }
 
-    private WZBroadcast broadcast;
-    private WZBroadcastConfig broadcastConfig;
-    private WZAudioDevice audioDevice;
-    private WZCameraView cameraView;
+    private WOWZBroadcast broadcast;
+    private WOWZBroadcastConfig broadcastConfig;
+    private WOWZAudioDevice audioDevice;
+    private WOWZCameraView cameraView;
     private ThemedReactContext localContext;
     private String sdkLicenseKey;
     private String hostAddress;
@@ -71,9 +73,9 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
 
         localContext = context;
         mEventEmitter = localContext.getJSModule(RCTEventEmitter.class);
-        audioDevice = new WZAudioDevice();
-        cameraView = new WZCameraView(context);
-        broadcast = new WZBroadcast();
+        audioDevice = new WOWZAudioDevice();
+        cameraView = new WOWZCameraView(context);
+        broadcast = new WOWZBroadcast();
         localContext.addLifecycleEventListener(this);
         cameraView.setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         cameraView.getCamera().setTorchOn(false);
@@ -108,9 +110,9 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
             if (mAutoFocusDetector == null)
                 mAutoFocusDetector = new GestureDetectorCompat(localContext, new AutoFocusListener(localContext, cameraView));
 
-            WZCamera activeCamera = cameraView.getCamera();
-            if (activeCamera != null && activeCamera.hasCapability(WZCamera.FOCUS_MODE_CONTINUOUS))
-                activeCamera.setFocusMode(WZCamera.FOCUS_MODE_CONTINUOUS);
+            WOWZCamera activeCamera = cameraView.getCamera();
+            if (activeCamera != null && activeCamera.hasCapability(WOWZCamera.FOCUS_MODE_CONTINUOUS))
+                activeCamera.setFocusMode(WOWZCamera.FOCUS_MODE_CONTINUOUS);
         }
     }
     
@@ -200,43 +202,48 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
 
     public void setBroadcasting(boolean broadcasting) {
 
-        WZCamera activeCamera = this.cameraView.getCamera();
-        if (activeCamera != null && activeCamera.hasCapability(WZCamera.FOCUS_MODE_CONTINUOUS))
-            activeCamera.setFocusMode(WZCamera.FOCUS_MODE_CONTINUOUS);
+        WOWZCamera activeCamera = this.cameraView.getCamera();
+        if (activeCamera != null && activeCamera.hasCapability(WOWZCamera.FOCUS_MODE_CONTINUOUS))
+            activeCamera.setFocusMode(WOWZCamera.FOCUS_MODE_CONTINUOUS);
             
         if(broadcastConfig == null){
             return;
         }
 
         if(!this.isBroadcasting()){
-            BroadcastManager.startBroadcast(broadcast, broadcastConfig, new WZStatusCallback(){
+            BroadcastManager.startBroadcast(broadcast, broadcastConfig, new WOWZBroadcastStatusCallback(){
                 @Override
-                public void onWZStatus(WZStatus wzStatus) {
-                    if(wzStatus.getState() == WZState.RUNNING){
-                        WritableMap event = Arguments.createMap();
-                        WritableMap broadcast = Arguments.createMap();
-                        broadcast.putString("host", getHostAddress());
-                        broadcast.putString("broadcastName", getBroadcastName());
-                        event.putMap("event", broadcast);
-                        mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_START.toString(), event);
+                public void onWZStatus(WOWZBroadcastStatus wzStatus) {
+                    if(wzStatus.isBroadcasting()) {
+                        WritableMap broadcastEventState = Arguments.createMap();
+                        broadcastEventState.putString("status", "started");
+                        mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_START.toString(), broadcastEventState);
+                    } else if(wzStatus.isIdle()) {
+                        WritableMap broadcastEventState = Arguments.createMap();
+                        broadcastEventState.putString("status", "stoped");
+                        mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_STOP.toString(), broadcastEventState);
+                    }else if(wzStatus.isReady()) {
+                        WritableMap broadcastEventState = Arguments.createMap();
+                        broadcastEventState.putString("status", "ready");
+                        mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_STATUS_CHANGE.toString(), broadcastEventState);
                     }
                 }
 
                 @Override
-                public void onWZError(WZStatus wzStatus) {
+                public void onWZError(WOWZBroadcastStatus wzStatus) {
                     if(wzStatus.getLastError() != null){
-                        WritableMap error = Arguments.createMap();
-                        error.putString("error", wzStatus.getLastError().toString());
-                        mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_FAIL.toString(), error);
+                        WritableMap broadcastEventState = Arguments.createMap();
+                        broadcastEventState.putString("status", "error");
+                        mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_ERROR.toString(), broadcastEventState);
                     }
                 }
             });
         }
         else{
-            BroadcastManager.stopBroadcast(broadcast, new WZStatusCallback() {
+            BroadcastManager.stopBroadcast(broadcast, new WOWZStatusCallback() {
                 @Override
-                public void onWZStatus(WZStatus wzStatus) {
-                    if(wzStatus.getState() == WZState.IDLE){
+                public void onWZStatus(WOWZStatus wzStatus) {
+                    if(wzStatus.getState() == WOWZState.IDLE){
                         WritableMap event = Arguments.createMap();
                         WritableMap broadcast = Arguments.createMap();
                         broadcast.putString("host", getHostAddress());
@@ -248,7 +255,7 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
                 }
 
                 @Override
-                public void onWZError(WZStatus wzStatus) {
+                public void onWZError(WOWZStatus wzStatus) {
                     if(wzStatus.getLastError() != null){
                         WritableMap error = Arguments.createMap();
                         error.putString("error", wzStatus.getLastError().toString());
