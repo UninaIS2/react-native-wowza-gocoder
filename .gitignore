@@ -65,6 +65,8 @@ captures/
 .externalNativeBuild
 android/gradlew
 android/gradlew.bat
+android/.project
+android/.settings
 android/.idea/compiler.xml
 android/.idea/misc.xml
 android/.idea/modules.xml
@@ -79,6 +81,8 @@ node_modules/
 ios/libWowzaGoCoder.a
 example/ios/wowzagocoder_static_lib
 example/ios/WowzaGoCoderSDK.framework
+example/android/.project
+example/android/.settings
 
 # MacOS files
 .DS_Store

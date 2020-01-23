@@ -59,4 +59,9 @@ RCT_EXPORT_VIEW_PROPERTY(onBroadcastStop, RCTDirectEventBlock);
              @"ScaleToFill": @(UIViewContentModeScaleToFill)
              };
 }
+
++ (BOOL)requiresMainQueueSetup
+ {
+     return NO;
+ }
 @end
