@@ -21,7 +21,7 @@ export default class BroadcastView extends Component {
     this._root.setNativeProps(nativeProps);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     if (Platform.OS == 'android') {
       DeviceEventEmitter.addListener('broadcastTimer', seconds => {
         this.props.onBroadcastVideoEncoded({ seconds: seconds });
