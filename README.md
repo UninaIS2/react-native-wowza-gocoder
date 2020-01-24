@@ -1,12 +1,10 @@
-# @adrianso/react-native-wowza-gocoder
-
 [![npm version](https://badge.fury.io/js/%40adrianso%2Freact-native-wowza-gocoder.svg)](https://badge.fury.io/js/%40adrianso%2Freact-native-wowza-gocoder)
 
-## About
+# @adrianso/react-native-wowza-gocoder
 
 This is a Native Module for React Native that integrates with Wowza GoCoder.
 
-## Requirements
+It is a fork of the https://github.com/medlmobileenterprises/react-native-wowza-gocoder repository, and has been updated to support the following:
 
 - React Native 0.60 and above
 - Wowza GoCoder SDK 1.9
