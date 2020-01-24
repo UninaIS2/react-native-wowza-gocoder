@@ -21,7 +21,7 @@
   "bugs": "https://github.com/adrianso/react-native-wowza-gocoder/issues",
   "license": "MIT",
   "main": "BroadcastView.js",
-  "name": "react-native-wowza-gocoder",
+  "name": "@adrianso/react-native-wowza-gocoder",
   "version": "1.0.7",
   "contributors": [
     {
