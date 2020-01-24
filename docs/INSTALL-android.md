@@ -1,4 +1,4 @@
-## Android installation
+# Android installation
 
 1. Download the latest Android Wowza Gocoder SDK from `https://www.wowza.com/pricing/installer#gocodersdk-downloads`.
 2. Unzip the file, and copy the `com.wowza.gocoder.sdk.aar` file into the following directory:
