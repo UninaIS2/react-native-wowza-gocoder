@@ -19,6 +19,10 @@
 
 ![Embed Framework](./embed-framework.png 'Embed Framework')
 
+10. Ensure that your have grant `camera` and `microphone` access in your Info.plist.
+
+![Info.plist](./info-plist.png 'Info.plist')
+
 10. Re-compile your project.
 
 ## References
