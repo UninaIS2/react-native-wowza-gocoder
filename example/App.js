@@ -1,10 +1,10 @@
 /**
- * Sample React Native App
+ * Example React Native App
  * https://github.com/facebook/react-native
  * @flow
  */
 
-import React, { Component } from 'react';
+import React, {useState, useEffect, Component} from 'react';
 import {
   AppRegistry,
   StyleSheet,
@@ -13,157 +13,185 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
-  Alert
+  Alert,
+  Platform,
 } from 'react-native';
-import BroadcastView from 'react-native-wowza-gocoder';
+import BroadcastView from '@adrianso/react-native-wowza-gocoder';
+import {check, request, PERMISSIONS} from 'react-native-permissions';
 import config from './wowzaConfig';
 const {width, height} = Dimensions.get('window');
-const Permissions = require('react-native-permissions');
 
-export default class App extends Component {
-  constructor(props){
-    super(props);
-    this.state = {
-      broadcasting:false,
-      muted:false,
-      flashEnabled:false,
-      frontCamera:false,
-      recordingTime: '00:00:00',
-      recordButtonImage: require('./assets/Rec.png'),
-      permissionGranted:false
-    }
-  }
-  componentDidMount(){
-    Permissions.checkMultiplePermissions(['camera', 'microphone']).then((response) =>{
+export default App = () => {
+  const [isBroadcasting, setBroadcasting] = useState(false);
+  const [isMuted, setMuted] = useState(false);
+  const [isFlashEnabled, setFlashEnabled] = useState(false);
+  const [isFrontCamera, setFrontCamera] = useState(false);
+  const [recordingTime, setRecordingTime] = useState('00:00:00');
+  const [recordButtonImage, setRecordButtonImage] = useState(
+    require('./assets/Rec.png'),
+  );
+  const [permissionGranted, setPermissionGranted] = useState(false);
 
-      const permissionGranted = (response.camera === "authorized" && response.microphone === "authorized");
-      if(!permissionGranted){
-        this._requestPermissions()
-      }
-
-      this.setState({
-        permissionGranted:permissionGranted
-      })
-    })
-  }
-  _requestPermissions() {
+  const requestPermissions = async () => {
     let cameraPermission = false;
     let microphonePermission = false;
-    Permissions.requestPermission('camera').then(response => {
-      if(response === 'authorized'){
-        cameraPermission = true
-      }
-      Permissions.requestPermission('microphone').then(resp => {
-        if (resp === 'authorized'){
-          microphonePermission = true
-        }
-        if(!(cameraPermission && microphonePermission)){
-          Alert.alert(
-              'Broadcast',
-              'In order to broadcast We need access to your camera, microphone',
-              [
-                {text: 'No way', onPress: null },
-                {text: 'Open Settings', onPress: Permissions.openSettings}
-              ]
-          )
-        }
-        this.setState({
-          permissionGranted:(cameraPermission && microphonePermission)
-        })
-      })
-    })
-  }
-  render() {
-    if(!this.state.permissionGranted){
-      return(<View style={{backgroundColor:'black'}}>
-          </View>
-        )
-    }
-    return (
-      <View style={styles.container}>
-        <BroadcastView style={styles.contentArea}
-                       hostAddress={config.hostAddress}
-                       applicationName={config.applicationName}
-                       sdkLicenseKey={config.sdkLicenseKey}
-                       broadcastName={config.streamName}
-                       username={config.username}
-                       password={config.password}
-                       backgroundMode={false}
-                       sizePreset={2}
-                       broadcasting={this.state.broadcasting}
-                       muted={this.state.muted}
-                       flashOn={this.state.flashEnabled}
-                       frontCamera={this.state.frontCamera}
-                       onBroadcastStart={this._didStartBroadcast}
-                       onBroadcastFail={this._broadcastDidFailToStart}
-                       onBroadcastStatusChange={this._broadcastStatusDidChange}
-                       onBroadcastEventReceive={this._broadcastDidReceiveEvent}
-                       onBroadcastErrorReceive={this._broadcastDidReceiveError}
-                       onBroadcastVideoEncoded={this._broadcastVideoFrameEncoded}
-                       onBroadcastStop={this._didStopBroadcast}
-        >
-        </BroadcastView>
-        <Text style={styles.recordingTimerLabel}>
-          {this.state.recordingTime}
-        </Text>
-        <View style={styles.cameraControls}>
-          <TouchableOpacity onPress={() => {this.setState({frontCamera: !this.state.frontCamera})}}>
-            <Image source={require('./assets/Flip.png')}></Image>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {this.setState({broadcasting: !this.state.broadcasting})}}>
-            <Image source={this.state.recordButtonImage} style={styles.cameraControlsButton}></Image>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {this.setState({flashEnabled: !this.state.flashEnabled})}}>
-            <Image source={require('./assets/Torch.png')} style={styles.cameraControlsButton}></Image>
-          </TouchableOpacity>
-        </View>
-      </View>
+
+    const response = await request(
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.CAMERA
+        : PERMISSIONS.ANDROID.CAMERA,
     );
-  }
+    if (response === 'granted') {
+      cameraPermission = true;
+    }
 
-  _didStartBroadcast = () =>{
-    this.setState({
-      recordButtonImage: require('./assets/Stop.png')
-    });
-  }
+    const resp = await request(
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.MICROPHONE
+        : PERMISSIONS.ANDROID.RECORD_AUDIO,
+    );
+    if (resp === 'granted') {
+      microphonePermission = true;
+    }
 
-  _broadcastDidFailToStart = (error) =>{
-    console.log('Failed to broadcast: ', error);
-  }
+    if (!(cameraPermission && microphonePermission)) {
+      Alert.alert(
+        'Broadcast',
+        'In order to broadcast We need access to your camera, microphone',
+        [
+          {text: 'No way', onPress: null},
+          {text: 'Open Settings', onPress: Permissions.openSettings},
+        ],
+      );
+    }
 
-  _broadcastStatusDidChange = (status) => {
+    setPermissionGranted(cameraPermission && microphonePermission);
+  };
 
-  }
+  const handleBroadcastStart = () => {
+    setRecordButtonImage(require('./assets/Stop.png'));
+  };
 
-  _broadcastDidReceiveEvent = (event) =>{
+  const handleBroadcastFail = error => {
+    console.warn('Failed to broadcast: ', error);
+  };
 
-  }
+  const handleBroadcastStatusChange = status => {
+    console.warn('Broadcast status changed', status);
+  };
 
-  _broadcastDidReceiveError = (error) =>{
+  const handleBroadcastEventReceive = event => {
+    console.warn('Broadcast event received', event);
+  };
 
-  }
+  const handleBroadcastErrorReceive = error => {
+    console.warn('Broadcast error received', error);
+  };
 
-  _broadcastVideoFrameEncoded = (time) => {
-    this.setState({recordingTime: this._formatCurrentTime(time.encoded)}, () => {
-      console.log(this.state.recordingTime);
-    });
-  }
-
-  _didStopBroadcast = () => {
-    this.setState({
-      recordButtonImage: require('./assets/Rec.png')
-    });
-  }
-
-  _formatCurrentTime(currentTime) {
+  const formatCurrentTime = currentTime => {
     let time = Number(currentTime);
     var h = Math.floor(time / 3600);
-    var m = Math.floor(time % 3600 / 60);
-    var s = Math.floor(time % 3600 % 60);
-    return ((h > 0 ? h + ":" + (m < 10 ? "0" : "") : "00:") + (m > 0?m:"00") + ":" + (s < 10 ? "0" : "") + s);
-  }
-}
+    var m = Math.floor((time % 3600) / 60);
+    var s = Math.floor((time % 3600) % 60);
+    return (
+      (h > 0 ? h + ':' + (m < 10 ? '0' : '') : '00:') +
+      (m > 0 ? m : '00') +
+      ':' +
+      (s < 10 ? '0' : '') +
+      s
+    );
+  };
 
+  const handleBroadcastVideoEncoded = time => {
+    setRecordingTime(formatCurrentTime(time.encoded));
+  };
+
+  const handleBroadcastStop = () => {
+    setRecordButtonImage(require('./assets/Rec.png'));
+  };
+
+  useEffect(() => {
+    (async () => {
+      const [camera, microphone] = await Promise.all([
+        check(
+          Platform.OS === 'ios'
+            ? PERMISSIONS.IOS.CAMERA
+            : PERMISSIONS.ANDROID.CAMERA,
+        ),
+        check(
+          Platform.OS === 'ios'
+            ? PERMISSIONS.IOS.MICROPHONE
+            : PERMISSIONS.ANDROID.RECORD_AUDIO,
+        ),
+      ]);
+
+      const granted = camera === 'granted' && microphone === 'granted';
+      if (!granted) {
+        requestPermissions();
+      }
+
+      setPermissionGranted(granted);
+    })();
+  }, []);
+
+  if (!permissionGranted) {
+    return <View style={{backgroundColor: 'black'}}></View>;
+  }
+
+  return (
+    <View style={styles.container}>
+      <BroadcastView
+        style={styles.contentArea}
+        hostAddress={config.hostAddress}
+        applicationName={config.applicationName}
+        sdkLicenseKey={config.sdkLicenseKey}
+        broadcastName={config.streamName}
+        username={config.username}
+        password={config.password}
+        backgroundMode={false}
+        sizePreset={2}
+        videoOrientation="portrait"
+        broadcasting={isBroadcasting}
+        muted={isMuted}
+        flashOn={isFlashEnabled}
+        frontCamera={isFrontCamera}
+        onBroadcastStart={handleBroadcastStart}
+        onBroadcastFail={handleBroadcastFail}
+        onBroadcastStatusChange={handleBroadcastStatusChange}
+        onBroadcastEventReceive={handleBroadcastEventReceive}
+        onBroadcastErrorReceive={handleBroadcastErrorReceive}
+        onBroadcastVideoEncoded={handleBroadcastVideoEncoded}
+        onBroadcastStop={handleBroadcastStop}
+      />
+
+      <Text style={styles.recordingTimerLabel}>{recordingTime}</Text>
+      <View style={styles.cameraControls}>
+        <TouchableOpacity
+          onPress={() => {
+            setFrontCamera(!isFrontCamera);
+          }}>
+          <Image source={require('./assets/Flip.png')}></Image>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            setBroadcasting(!isBroadcasting);
+          }}>
+          <Image
+            source={recordButtonImage}
+            style={styles.cameraControlsButton}></Image>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            setFlashEnabled(!isFlashEnabled);
+          }}>
+          <Image
+            source={require('./assets/Torch.png')}
+            style={styles.cameraControlsButton}></Image>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -171,7 +199,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
     justifyContent: 'center',
     flexDirection: 'row',
-    alignItems: 'flex-end'
+    alignItems: 'flex-end',
   },
   welcome: {
     fontSize: 20,
@@ -185,25 +213,25 @@ const styles = StyleSheet.create({
   },
   contentArea: {
     position: 'absolute',
-    top:0,
-    left:0,
-    right:0,
-    bottom:0,
-    backgroundColor: 'rgba(0,0,0,0.75)'
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   recordingTimerLabel: {
     position: 'absolute',
-    top: 36
+    top: 36,
   },
   cameraControls: {
     marginBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: width - 32
+    width: width - 32,
   },
   cameraControlsButton: {
     width: 60,
-    height: 60
-  }
+    height: 60,
+  },
 });

@@ -53,6 +53,8 @@ fastlane/Preview.html
 fastlane/screenshots
 
 # Example app Wowza SDKs
-ios/wowzagocoder_static_lib
-ios/WowzaGoCoderSDK.framework
+ios/wowza-gocoder-sdk
 android/app/libs/com.wowza.gocoder.sdk.aar
+
+# CocoaPods
+/ios/Pods/

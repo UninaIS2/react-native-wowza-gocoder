@@ -3,6 +3,6 @@ export default config = {
   applicationName: '',
   sdkLicenseKey: '',
   username: '',
-  streamName:'',
+  streamName: '',
   password: '',
-}
+};
