@@ -1,4 +1,6 @@
 {
+  "name": "@adrianso/react-native-wowza-gocoder",
+  "version": "1.0.8",
   "repository": {
     "type": "git",
     "url": "https://github.com/adrianso/react-native-wowza-gocoder.git"
@@ -21,12 +23,14 @@
   "bugs": "https://github.com/adrianso/react-native-wowza-gocoder/issues",
   "license": "MIT",
   "main": "BroadcastView.js",
-  "name": "@adrianso/react-native-wowza-gocoder",
-  "version": "1.0.7",
   "contributors": [
     {
       "name": "Hugo Nagano",
       "email": "hugo@medlmobile.com"
+    },
+    {
+      "name": "Adrian So",
+      "email": "adrian@sld.co.nz"
     }
   ]
 }
