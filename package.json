@@ -9,7 +9,7 @@
   "description": "React Native wrapper for the Wowza GoCoder SDK",
   "devDependencies": {},
   "scripts": {
-    "postinstall": "mkdir -p ./android/libs && cp -R ../../android/app/libs/ ./android/libs/ 2>/dev/null || :"
+    "postinstall": "mkdir -p ./android/libs && cp -R ../../../android/app/libs/ ./android/libs/ 2>/dev/null || :"
   },
   "keywords": [
     "react-native",
