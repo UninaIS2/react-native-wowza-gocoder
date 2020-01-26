@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@adrianso/react-native-wowza-gocoder@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@adrianso/react-native-wowza-gocoder/-/react-native-wowza-gocoder-1.0.7.tgz#22d11ba76f044578ddac41826590a01a467d39e8"
-  integrity sha512-d1qMVDvmZa1jmsrJoBr121D6FE4rRdSpPrpempbl/5QF1woSv846rA4C+BVkkgV/67sNE1977LbttgFdoY9FMg==
+"@adrianso/react-native-wowza-gocoder@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@adrianso/react-native-wowza-gocoder/-/react-native-wowza-gocoder-1.0.8.tgz#5c15327b5841402976f8919c377cc55e19cdaa5d"
+  integrity sha512-xgnlScDAP0uihCJnQU28Anah978+MBpNGh2bcDVbvWJKOL1Zs0cKOVx10trBnwk6rMxfTsmxnNCCHlLDnBPZ5Q==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.8.3":
   version "7.8.3"

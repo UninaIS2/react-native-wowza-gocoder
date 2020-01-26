@@ -10,7 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@adrianso/react-native-wowza-gocoder": "^1.0.7",
+    "@adrianso/react-native-wowza-gocoder": "^1.0.8",
     "react": "16.9.0",
     "react-native": "0.61.5",
     "react-native-permissions": "^2.0.9"
