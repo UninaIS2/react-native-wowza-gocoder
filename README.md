@@ -35,30 +35,36 @@ const config = {
 3. Add functions for debug, testing
 
 ```javascript
-onBroadcastStart(){
-  console.log("Broadcast start");
-}
-onBroadcastFail(){
-  console.log("Broadcast fail");
-}
-onBroadcastStatusChange(){
-  console.log("Broadcast status change");
-}
-onBroadcastEventReceive(){
-  console.log("Broadcast event receive");
-}
-onBroadcastErrorReceive(){
-  console.log("Broadcast error receive");
-}
-onBroadcastVideoEncoded(){
-  console.log("Broadcast encoded");
-}
-onBroadcastStop(){
-  console.log("Broadcast stop");
-}
+const handleBroadcastStart = () => {
+  console.log('Broadcast start');
+};
+
+const handleBroadcastFail = () => {
+  console.log('Broadcast fail');
+};
+
+const handleBroadcastStatusChange = () => {
+  console.log('Broadcast status change');
+};
+
+const handleBroadcastEventReceive = () => {
+  console.log('Broadcast event receive');
+};
+
+const handleBroadcastErrorReceive = () => {
+  console.log('Broadcast error receive');
+};
+
+const handleBroadcastVideoEncoded = () => {
+  console.log('Broadcast encoded');
+};
+
+const handleBroadcastStop = () => {
+  console.log('Broadcast stop');
+};
 ```
 
-4. Use the component in render
+4. Use the `<BroadcastView>` component in render
 
 ```javascript
 <BroadcastView
@@ -66,23 +72,23 @@ onBroadcastStop(){
   hostAddress={config.hostAddress}
   applicationName={config.applicationName}
   broadcastName={config.streamName}
-  broadcasting={false}
   username={config.username}
   password={config.password}
+  sdkLicenseKey={config.sdkLicenseKey}
   sizePreset={3}
   videoOrientation="portrait"
   port={1935}
+  broadcasting={false}
   muted={false}
   flashOn={false}
   frontCamera={false}
-  onBroadcastStart={this.onBroadcastStart}
-  onBroadcastFail={this.onBroadcastFail}
-  onBroadcastStatusChange={this.onBroadcastStatusChange}
-  onBroadcastEventReceive={this.onBroadcastEventReceive}
-  onBroadcastErrorReceive={this.onBroadcastErrorReceive}
-  onBroadcastVideoEncoded={this.onBroadcastVideoEncoded}
-  onBroadcastStop={this.onBroadcastStop}
-  sdkLicenseKey={config.sdkLicenseKey}
+  onBroadcastStart={handleBroadcastStart}
+  onBroadcastFail={handleBroadcastFail}
+  onBroadcastStatusChange={handleBroadcastStatusChange}
+  onBroadcastEventReceive={handleBroadcastEventReceive}
+  onBroadcastErrorReceive={handleBroadcastErrorReceive}
+  onBroadcastVideoEncoded={handleBroadcastVideoEncoded}
+  onBroadcastStop={handleBroadcastStop}
 />
 ```
 
