@@ -16,24 +16,58 @@ import com.wowza.gocoder.sdk.api.status.WOWZBroadcastStatusCallback;
 
 
 public class BroadcastManager {
+    
+    protected static WOWZBroadcastConfig broadcastConfig = null;
+    protected static WowzaGoCoder sGoCoderSDK = null;
+    protected static WOWZBroadcast mWZBroadcast = null;
+
+    public WOWZBroadcastConfig getBroadcastConfig() {
+        return broadcastConfig;
+    }
+
     public static WOWZBroadcastConfig initBroadcast(Context localContext, String hostAddress, String applicationName, String broadcastName, String sdkLicenseKey, String username, String password,int sizePreset, String videoOrientation, WOWZCameraView cameraView, WOWZAudioDevice audioDevice){
-        WowzaGoCoder.init(localContext, sdkLicenseKey);
-        WOWZBroadcastConfig broadcastConfig = new WOWZBroadcastConfig();
-        broadcastConfig.setOrientationBehavior(getOrientationBehavior(videoOrientation));
-        broadcastConfig.setVideoFramerate(12);
+        if(sGoCoderSDK == null){
+            // Enable detailed logging from the GoCoder SDK
+            WOWZLog.LOGGING_ENABLED = true;
+            sGoCoderSDK = WowzaGoCoder.init(localContext, sdkLicenseKey);
+        }
 
-        WOWZMediaConfig mediaConfig = getSizePresetWithInt(sizePreset);
-        broadcastConfig.setVideoSourceConfig(mediaConfig);
+        if (sGoCoderSDK != null) {
 
-        broadcastConfig.setVideoBroadcaster(cameraView);
-        broadcastConfig.setAudioBroadcaster(audioDevice);
-        broadcastConfig.setAudioBitRate(22400);
+            // Create an instance for the broadcast configuration
+            broadcastConfig = new WOWZBroadcastConfig(WOWZMediaConfig.FRAME_SIZE_1280x720);
 
-        broadcastConfig.setHostAddress(hostAddress);
-        broadcastConfig.setUsername(username);
-        broadcastConfig.setPassword(password);
-        broadcastConfig.setApplicationName(applicationName);
-        broadcastConfig.setStreamName(broadcastName);
+            // Create a broadcaster instance
+            mWZBroadcast = new WOWZBroadcast();
+            mWZBroadcast.setLogLevel(WOWZLog.LOG_LEVEL_DEBUG);
+
+            // TODO 1 orentation Same as path
+            if (videoOrientation != null) {
+                broadcastConfig.setOrientationBehavior(getOrientationBehavior(videoOrientation));
+            }
+            broadcastConfig.setOrientationBehavior(WOWZMediaConfig.ALWAYS_PORTRAIT);
+
+            // When it comes to security cameras, quality isn’t important.
+            // If the quality is important comment the successive 3 linesok
+            // broadcastConfig.setVideoKeyFrameInterval(4);
+            broadcastConfig.setVideoBitRate(1000);
+            broadcastConfig.setVideoFramerate(15);
+            broadcastConfig.setAudioBitRate(22400);
+
+
+
+            WOWZMediaConfig mediaConfig = getSizePresetWithInt(sizePreset);
+            broadcastConfig.setVideoSourceConfig(mediaConfig);
+
+            broadcastConfig.setVideoBroadcaster(cameraView);
+            broadcastConfig.setAudioBroadcaster(audioDevice);
+
+            broadcastConfig.setHostAddress(hostAddress);
+            broadcastConfig.setUsername(username);
+            broadcastConfig.setPassword(password);
+            broadcastConfig.setApplicationName(applicationName);
+            broadcastConfig.setStreamName(broadcastName);
+        }
 
         return broadcastConfig;
     }

@@ -51,7 +51,7 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
     private WOWZBroadcast broadcast;
     private WOWZBroadcastConfig broadcastConfig;
     private WOWZAudioDevice audioDevice;
-    private WOWZCameraView cameraView;
+    private WOWZCameraView cameraView  = null;
     private ThemedReactContext localContext;
     private String sdkLicenseKey;
     private String hostAddress;
@@ -60,6 +60,7 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
     private String username;
     private String password;
     private String videoOrientation;
+    private boolean audioOnly;
     private RCTEventEmitter mEventEmitter;
     private boolean broadcasting = false;
     private boolean flashOn = false;
@@ -98,24 +99,42 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
 
     @Override
     public void onHostResume() {
-        if(broadcastConfig == null && cameraView != null) {
-            broadcastConfig = BroadcastManager.initBroadcast(localContext, getHostAddress(), getApplicationName(), getBroadcastName(), getSdkLicenseKey(), getUsername(), getPassword(), getSizePreset(), getVideoOrientation(), cameraView, audioDevice);
+
+
+        if(broadcastConfig == null && this.cameraView != null) {
+            broadcastConfig = BroadcastManager.initBroadcast(
+                localContext, 
+                getHostAddress(), 
+                getApplicationName(), 
+                getBroadcastName(), 
+                getSdkLicenseKey(), 
+                getUsername(), 
+                getPassword(), 
+                getSizePreset(), 
+                getVideoOrientation(), 
+                this.cameraView, 
+                audioDevice
+            );
+            this.cameraView.setCameraConfig(broadcastConfig);
         }
 
-        if(cameraView != null){
-            cameraView.startPreview();
+        if(this.cameraView != null){
+            this.cameraView.startPreview();
+            int numCameras = WOWZCamera.getNumberOfDeviceCameras(localContext);
         }
 
-        if (broadcastConfig != null && cameraView != null) {
+        if (broadcastConfig != null && this.cameraView != null) {
             if (mAutoFocusDetector == null)
                 mAutoFocusDetector = new GestureDetectorCompat(localContext, new AutoFocusListener(localContext, cameraView));
 
-            WOWZCamera activeCamera = cameraView.getCamera();
+
+            WOWZCamera activeCamera = this.cameraView.getCamera();
+
             if (activeCamera != null && activeCamera.hasCapability(WOWZCamera.FOCUS_MODE_CONTINUOUS))
                 activeCamera.setFocusMode(WOWZCamera.FOCUS_MODE_CONTINUOUS);
         }
     }
-    
+
 
     public void setCameraType(Integer cameraType) {
         this.cameraView.setCamera(cameraType);
@@ -210,19 +229,26 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
             return;
         }
 
-        if(!this.isBroadcasting()){
+        if(!broadcast.getStatus().isBroadcasting()){
+            if(isNoVideo()){
+                broadcastConfig.setVideoEnabled(false);
+            }else{
+                broadcastConfig.setVideoEnabled(true);
+            }
             BroadcastManager.startBroadcast(broadcast, broadcastConfig, new WOWZBroadcastStatusCallback(){
+
+
                 @Override
-                public void onWZStatus(WOWZBroadcastStatus wzStatus) {
-                    if(wzStatus.isBroadcasting()) {
+                public void onWZStatus(WOWZBroadcastStatus wowzBroadcastStatus) {
+                    if(wowzBroadcastStatus.isBroadcasting()) {
                         WritableMap broadcastEventState = Arguments.createMap();
                         broadcastEventState.putString("status", "started");
                         mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_START.toString(), broadcastEventState);
-                    } else if(wzStatus.isIdle()) {
+                    } else if(wowzBroadcastStatus.isIdle()) {
                         WritableMap broadcastEventState = Arguments.createMap();
                         broadcastEventState.putString("status", "stoped");
                         mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_STOP.toString(), broadcastEventState);
-                    }else if(wzStatus.isReady()) {
+                    }else if(wowzBroadcastStatus.isReady()) {
                         WritableMap broadcastEventState = Arguments.createMap();
                         broadcastEventState.putString("status", "ready");
                         mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_STATUS_CHANGE.toString(), broadcastEventState);
@@ -230,33 +256,24 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
                 }
 
                 @Override
-                public void onWZError(WOWZBroadcastStatus wzStatus) {
-                    if(wzStatus.getLastError() != null){
-                        WritableMap broadcastEventState = Arguments.createMap();
-                        broadcastEventState.putString("status", "error");
-                        mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_ERROR.toString(), broadcastEventState);
-                    }
+                public void onWZError(WOWZBroadcastStatus wowzBroadcastStatus) {
+                    WritableMap broadcastEventState = Arguments.createMap();
+                    broadcastEventState.putString("status", "error");
+                    mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_ERROR.toString(), broadcastEventState);
                 }
             });
-        }
-        else{
-            BroadcastManager.stopBroadcast(broadcast, new WOWZStatusCallback() {
+        } else {
+        if (broadcast.getStatus().isBroadcasting()) {
+            broadcast.endBroadcast(new WOWZStatusCallback() {
+
                 @Override
                 public void onWZStatus(WOWZStatus wzStatus) {
-                    if(wzStatus.getState() == WOWZState.IDLE){
-                        WritableMap event = Arguments.createMap();
-                        WritableMap broadcast = Arguments.createMap();
-                        broadcast.putString("host", getHostAddress());
-                        broadcast.putString("broadcastName", getBroadcastName());
-                        broadcast.putString("status", "stopped");
-                        event.putMap("event", broadcast);
-                        mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_STOP.toString(), event);
-                    }
+
                 }
 
                 @Override
                 public void onWZError(WOWZStatus wzStatus) {
-                    if(wzStatus.getLastError() != null){
+                    if (wzStatus.getLastError() != null) {
                         WritableMap error = Arguments.createMap();
                         error.putString("error", wzStatus.getLastError().toString());
                         mEventEmitter.receiveEvent(getId(), Events.EVENT_BROADCAST_FAIL.toString(), error);
@@ -264,7 +281,8 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
                 }
             });
         }
-        this.broadcasting = broadcasting;
+        }
+        broadcast.endBroadcast();
     }
 
     public boolean isFlashOn() {
@@ -283,9 +301,13 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
     }
 
     public void setFrontCamera(boolean frontCamera) {
-        if(cameraView != null) {
+        if(cameraView != null && cameraView.isPreviewing()) {
+            int numCameras = WOWZCamera.getNumberOfDeviceCameras(localContext);
+
             BroadcastManager.invertCamera(cameraView);
-            this.frontCamera = frontCamera;
+            if(numCameras > 1 ){
+                this.frontCamera = frontCamera;
+            }
         }
     }
 
@@ -299,5 +321,14 @@ public class BroadcastView extends FrameLayout implements LifecycleEventListener
             this.muted = muted;
         }
     }
+
+    public boolean isNoVideo() {
+        return audioOnly;
+    }
+
+    public void setAudioOnly(boolean audioOnly) {
+        this.audioOnly = audioOnly;
+    }
+
 }
 
