@@ -45,6 +45,7 @@
 @property (nonatomic, assign) BOOL broadcasting;
 @property (nonatomic, assign) BOOL flashOn;
 @property (nonatomic, assign) BOOL frontCamera;
+@property (nonatomic, assign) BOOL audioOnly;
 @property (nonatomic, assign) BOOL muted;
 @property (nonatomic, strong) WMBroadcastView *broadcast;
 
@@ -103,6 +104,7 @@
                                                                 sizePreset:self.sizePreset
                                                           videoOrientation:self.videoOrientation
                                                                frontCamera:self.frontCamera
+                                                                 audioOnly:self.audioOnly
                                                           andBroadcastView:self];
         self.broadcast.delegate = self;
     }

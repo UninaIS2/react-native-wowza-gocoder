@@ -46,12 +46,14 @@ static BroadcastManager *sharedMyManager = nil;
                                              sizePreset:(NSInteger)sizePreset
                                        videoOrientation:(NSString *)videoOrientation
                                             frontCamera:(BOOL)frontCamera
+                                            audioOnly:(BOOL)audioOnly
                                        andBroadcastView:(UIView *)view
 {
     
     
     WowzaConfig *config = [[WowzaConfig alloc] initWithPreset:sizePreset];
     config.hostAddress = hostAddress;
+    config.videoEnabled = !audioOnly;
     config.portNumber = 1935;
     if(port){
         config.portNumber = port;

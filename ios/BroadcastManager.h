@@ -31,6 +31,7 @@ static NSString *didStopBroadcast                 = @"onBroadcastStop";
                                              sizePreset:(NSInteger)sizePreset
                                        videoOrientation:(NSString *)videoOrientation
                                             frontCamera:(BOOL)frontCamera
+                                              audioOnly:(BOOL)audioOnly
                                        andBroadcastView:(UIView *)view;
 +(void)startBroadcast:(WMBroadcastView *) broadcast;
 +(void)stopBroadcast:(WMBroadcastView *) broadcast;
